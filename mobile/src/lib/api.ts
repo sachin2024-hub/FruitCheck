@@ -22,13 +22,13 @@ export type PredictResult = {
 
 export class ApiError extends Error {}
 
-const TIMEOUT_MS = 30000;
+const TIMEOUT_MS = 90000; // Render free tier can take 30-60 s to wake up
 const log = (...args: unknown[]) => console.log('[FruitCheck]', ...args);
 
 async function request(path: string, init: RequestInit): Promise<Response> {
   if (!API_URL) {
-    log('No API URL: app was not loaded from the Expo dev server and EXPO_PUBLIC_API_URL is empty');
-    throw new ApiError('The server address is not configured. Set EXPO_PUBLIC_API_URL or start the app with "npx expo start".');
+    log('No API URL configured');
+    throw new ApiError('The server address is not configured.');
   }
   const url = `${API_URL}${path}`;
   const controller = new AbortController();
@@ -51,7 +51,7 @@ async function request(path: string, init: RequestInit): Promise<Response> {
       throw new ApiError(`The server at ${API_URL} is reachable, but sending the photo failed (${reason}).`);
     }
     throw new ApiError(
-      `Cannot reach the server at ${API_URL} (${reason}). Make sure the backend and "npx expo start" are running on the computer.`,
+      `Cannot reach the server at ${API_URL} (${reason}). Check your internet connection and try again; the server may be waking up.`,
     );
   } finally {
     clearTimeout(timer);
@@ -60,7 +60,7 @@ async function request(path: string, init: RequestInit): Promise<Response> {
 
 async function serverReachable(): Promise<boolean> {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 10000);
+  const timer = setTimeout(() => controller.abort(), 60000);
   try {
     const res = await fetch(`${API_URL}/health`, { signal: controller.signal });
     log(`Reachability check ${API_URL}/health -> HTTP ${res.status}`);
