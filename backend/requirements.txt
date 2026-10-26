@@ -1,0 +1,9 @@
+tensorflow==2.20.0
+keras==3.13.2
+fastapi
+uvicorn[standard]
+pillow
+python-multipart
+pydantic-settings
+httpx
+pytest
