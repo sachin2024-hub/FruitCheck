@@ -33,7 +33,7 @@ def test_health_reports_model_loaded(client):
 def test_model_info(client):
     body = client.get("/model-info").json()
     assert (body["input_height"], body["input_width"]) == (224, 224)
-    assert len(body["class_names"]) == 6
+    assert len(body["class_names"]) == 8
 
 
 def test_predict_valid_image_shape(client):
@@ -121,11 +121,14 @@ def test_predict_rejects_bad_image_source(client):
         ("unripe banana", "banana_unripe", "banana", "unripe"),
         ("ripe mango", "mango_ripe", "mango", "ripe"),
         ("unripe mango", "mango_unripe", "mango", "unripe"),
+        ("ripe grapes", "grapes_ripe", "grapes", "ripe"),
+        ("unripe grapes", "grapes_unripe", "grapes", "unripe"),
     ],
 )
 def test_class_mapping_on_dataset_samples(client, folder, label, fruit, ripeness):
     """Regression guard for the output-index -> label mapping in class_names.json."""
-    files = sorted((DATASET / folder).glob("*.jpg"))[:10]
+    jpgs = sorted((DATASET / folder).glob("*.jpg"))
+    files = jpgs[:: max(1, len(jpgs) // 10)][:10]  # spread across the folder, not one contiguous batch
     hits = 0
     for f in files:
         body = client.post(

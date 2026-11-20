@@ -172,7 +172,7 @@ export default function History() {
               <Empty
                 icon="leaf-outline"
                 title="No scans yet"
-                text="Scan an apple, banana or mango and your results will be saved here."
+                text="Scan an apple, banana, mango or grapes and your results will be saved here."
                 action={<Button label="Scan a Fruit" icon="camera" onPress={() => router.push('/scan')} />}
               />
             )

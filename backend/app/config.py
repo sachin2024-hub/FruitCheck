@@ -9,7 +9,7 @@ BACKEND_DIR = Path(__file__).resolve().parent.parent
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=BACKEND_DIR / ".env", extra="ignore")
 
-    model_path: Path = BACKEND_DIR / "models" / "fruitcheck_model_v3.keras"
+    model_path: Path = BACKEND_DIR / "models" / "fruitcheck_model_v4.keras"
     class_names_path: Path = BACKEND_DIR / "models" / "class_names.json"
 
     max_upload_mb: int = 8

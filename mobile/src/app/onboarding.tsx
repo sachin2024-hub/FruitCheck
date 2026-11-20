@@ -13,7 +13,7 @@ import { colors, radius, space, type } from '@/lib/theme';
 
 const SLIDES: { title: string; text: string; icon: IconName; photo: ImageSourcePropType }[] = [
   {
-    title: 'Scan any apple, banana or mango',
+    title: 'Scan any apple, banana, mango or grapes',
     text: 'Point your camera at a single fruit and FruitCheck classifies it as ripe or unripe.',
     icon: 'scan',
     photo: FRUIT_PHOTOS['apple-ripe'],

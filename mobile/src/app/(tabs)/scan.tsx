@@ -180,7 +180,7 @@ export default function Scan() {
               <View key={c} style={[styles.corner, cornerStyle[c]]} />
             ))}
           </View>
-          <Text style={styles.hint}>Place one apple, banana or mango inside the frame</Text>
+          <Text style={styles.hint}>Place one apple, banana, mango or grapes inside the frame</Text>
         </View>
 
         {error && (

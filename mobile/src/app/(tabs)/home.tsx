@@ -95,7 +95,7 @@ export default function Home() {
               />
             ))}
           </View>
-          <Text style={styles.heroTitle}>Apple · Banana · Mango</Text>
+          <Text style={styles.heroTitle}>Apple · Banana · Mango · Grapes</Text>
           <Text style={styles.heroText}>
             Photograph one fruit in good light and FruitCheck will classify it as ripe or unripe.
           </Text>

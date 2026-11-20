@@ -20,7 +20,7 @@ create table if not exists public.fruit_types (
 );
 
 insert into public.fruit_types (slug, display_name) values
-  ('apple','Apple'), ('banana','Banana'), ('mango','Mango')
+  ('apple','Apple'), ('banana','Banana'), ('mango','Mango'), ('grapes','Grapes')
 on conflict (slug) do update set display_name = excluded.display_name;
 
 create table if not exists public.model_versions (
