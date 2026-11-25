@@ -1,12 +1,13 @@
 #!/usr/bin/env node
-// Development only: starts Expo behind a Cloudflare quick tunnel instead of `--tunnel` (ngrok).
+// Development only: starts the backend (if it is not running), then Expo behind a Cloudflare quick tunnel instead of `--tunnel` (ngrok).
 // The phone downloads the JS bundle through the tunnel; ngrok was measured at ~50 KB/s here
 // (30 s to 3 min per load), Cloudflare at a few seconds for the same bundle.
-// API calls still go through the /fruitcheck-api proxy in metro.config.js, so the backend
-// setup does not change.
+// API calls go through the /fruitcheck-api proxy in metro.config.js, so the same tunnel
+// reaches the backend and the phone does not need to be on the same Wi-Fi.
 'use strict';
 
 const fs = require('fs');
+const http = require('http');
 const https = require('https');
 const net = require('net');
 const path = require('path');
@@ -15,6 +16,11 @@ const { spawn } = require('child_process');
 const PROJECT_ROOT = path.join(__dirname, '..');
 const EXPO_CLI = path.join(PROJECT_ROOT, 'node_modules', 'expo', 'bin', 'cli');
 const METRO_PORT = 8081;
+const BACKEND_DIR = path.join(PROJECT_ROOT, '..', 'backend');
+const BACKEND_PORT = 8000;
+const BACKEND_WAIT_MS = 120000;
+const TUNNEL_TIMEOUT_MS = 30000; // a working tunnel connects in a few seconds
+const TUNNEL_ATTEMPTS = 5;
 const BIN_PATH = path.join(PROJECT_ROOT, '.cloudflared', 'cloudflared.exe');
 const DOWNLOAD_URL =
   'https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.exe';
@@ -56,6 +62,38 @@ function portInUse(port) {
   });
 }
 
+// Opens the backend in its own window so its logs stay readable and it survives Expo restarts.
+async function startBackend() {
+  if (await portInUse(BACKEND_PORT)) return;
+  console.log('Starting the backend in a new window...');
+  spawn('cmd.exe', ['/c', 'start', 'FruitCheck Backend', 'cmd.exe', '/c', '.\\run_backend.bat'], {
+    cwd: BACKEND_DIR,
+    detached: true,
+    stdio: 'ignore',
+  }).on('error', (err) => console.log(`Could not start the backend: ${err.message}`));
+}
+
+function backendHealthy() {
+  return new Promise((resolve) => {
+    const req = http.get({ host: '127.0.0.1', port: BACKEND_PORT, path: '/health', timeout: 3000 }, (res) => {
+      let body = '';
+      res.on('data', (chunk) => (body += chunk));
+      res.on('end', () => resolve(res.statusCode === 200 && /"model_loaded"\s*:\s*true/.test(body)));
+    });
+    req.on('timeout', () => req.destroy());
+    req.on('error', () => resolve(false));
+  });
+}
+
+async function waitForBackend() {
+  const deadline = Date.now() + BACKEND_WAIT_MS;
+  while (!(await backendHealthy())) {
+    if (Date.now() > deadline) return false;
+    await new Promise((r) => setTimeout(r, 2000));
+  }
+  return true;
+}
+
 function killTree(proc) {
   if (!proc || !proc.pid) return;
   spawn('taskkill', ['/pid', String(proc.pid), '/T', '/F'], { stdio: 'ignore', windowsHide: true });
@@ -70,13 +108,17 @@ function startTunnel(binPath) {
     );
     let url = null;
     let connected = false;
-    const timer = setTimeout(() => (killTree(child), reject(new Error('Cloudflare tunnel took too long.'))), 90000);
+    let errors = [];
+    const fail = (message) => reject(new Error([message, ...errors].join('\n  ')));
+    const timer = setTimeout(() => (killTree(child), fail('Cloudflare tunnel took too long.')), TUNNEL_TIMEOUT_MS);
 
     const onData = (data) => {
       const text = data.toString();
       // api.trycloudflare.com appears in error messages; it is not a tunnel URL.
       const match = text.match(/https:\/\/(?!api\.)[a-z0-9-]+\.trycloudflare\.com/i);
       url = url || (match && match[0]);
+      // Keep the last few error lines so a failure explains itself.
+      errors = errors.concat(text.split(/\r?\n/).filter((line) => /\bERR\b|failed/i.test(line))).slice(-3);
       connected = connected || /Registered tunnel connection|Connection registered/i.test(text);
       if (url && connected) {
         clearTimeout(timer);
@@ -86,11 +128,11 @@ function startTunnel(binPath) {
     child.stdout.on('data', onData);
     child.stderr.on('data', onData);
     child.on('error', (err) => (clearTimeout(timer), reject(err)));
-    child.on('exit', (code) => (clearTimeout(timer), reject(new Error(`cloudflared exited (code ${code})`))));
+    child.on('exit', (code) => (clearTimeout(timer), fail(`cloudflared exited (code ${code}).`)));
   });
 }
 
-async function startTunnelWithRetries(binPath, attempts = 3) {
+async function startTunnelWithRetries(binPath, attempts = TUNNEL_ATTEMPTS) {
   for (let i = 1; ; i++) {
     try {
       return await startTunnel(binPath);
@@ -109,6 +151,8 @@ async function main() {
     process.exit(1);
   }
 
+  await startBackend();
+
   let tunnel = null;
   try {
     console.log('Opening Cloudflare tunnel...');
@@ -125,6 +169,15 @@ async function main() {
     console.log('Expo will still start, but only phones on the same Wi-Fi can connect.');
     console.log('');
   }
+
+  console.log('Checking the backend (loading the model can take a minute)...');
+  if (await waitForBackend()) {
+    console.log('Backend ready.');
+  } else {
+    console.log(`Backend is not ready on port ${BACKEND_PORT}: check the "FruitCheck Backend" window.`);
+    console.log('Expo will still start, but scanning will not work until the backend is ready.');
+  }
+  console.log('');
 
   const expo = spawn(process.execPath, [EXPO_CLI, 'start', '--lan', '--port', String(METRO_PORT), ...process.argv.slice(2)], {
     cwd: PROJECT_ROOT,

@@ -22,7 +22,7 @@ export default function About() {
       <Card style={{ gap: space.sm }}>
         <Text style={type.heading}>FruitCheck: An Intelligent Fruit Ripeness Classification System Using Machine Learning</Text>
         <Text style={type.body}>
-          FruitCheck classifies photos of apples, bananas, mangoes and grapes as ripe or unripe using a convolutional neural
+          FruitCheck classifies photos of apples, bananas and grapes as ripe or unripe using a convolutional neural
           network based on MobileNetV2. Photos are analysed by the FruitCheck server and results are stored in your
           private account.
         </Text>
@@ -31,7 +31,7 @@ export default function About() {
         <Info k="App version" v={Constants.expoConfig?.version ?? '1.0.0'} />
         <Info k="Model" v={model ? `${model.model_name} ${model.version}` : 'Not available'} />
         <Info k="Architecture" v={model?.architecture ?? 'MobileNetV2'} />
-        <Info k="Classes" v="Apple, Banana, Mango, Grapes × Ripe, Unripe" />
+        <Info k="Classes" v="Apple, Banana, Grapes × Ripe, Unripe" />
       </Card>
       <Text style={type.caption}>
         Results are predictions from a machine learning model and can be wrong. Do not rely on them for food-safety

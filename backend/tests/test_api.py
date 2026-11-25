@@ -119,8 +119,6 @@ def test_predict_rejects_bad_image_source(client):
         ("unripe apple", "apple_unripe", "apple", "unripe"),
         ("ripe banana", "banana_ripe", "banana", "ripe"),
         ("unripe banana", "banana_unripe", "banana", "unripe"),
-        ("ripe mango", "mango_ripe", "mango", "ripe"),
-        ("unripe mango", "mango_unripe", "mango", "unripe"),
         ("ripe grapes", "grapes_ripe", "grapes", "ripe"),
         ("unripe grapes", "grapes_unripe", "grapes", "unripe"),
     ],

@@ -1,4 +1,4 @@
-"""Trains a MobileNetV2 classifier on the leak-free split from audit_dataset.py.
+f"""Trains a MobileNetV2 classifier on the leak-free split from audit_dataset.py.
 
     python scripts/audit_dataset.py "../ripe unripe fruits" --split models/split.json
     python scripts/train_model.py "../ripe unripe fruits" models/split.json models/fruitcheck_model_v2.keras

@@ -86,7 +86,7 @@ export default function Home() {
 
         <Animated.View entering={FadeInDown.duration(400)} style={styles.hero}>
           <View style={styles.heroPhotos}>
-            {(['apple-ripe', 'banana-ripe', 'mango-ripe'] as const).map((k, i) => (
+            {(['apple-ripe', 'banana-ripe', 'grapes-ripe'] as const).map((k, i) => (
               <Image
                 key={k}
                 source={FRUIT_PHOTOS[k]}
@@ -95,7 +95,7 @@ export default function Home() {
               />
             ))}
           </View>
-          <Text style={styles.heroTitle}>Apple · Banana · Mango · Grapes</Text>
+          <Text style={styles.heroTitle}>Apple · Banana · Grapes</Text>
           <Text style={styles.heroText}>
             Photograph one fruit in good light and FruitCheck will classify it as ripe or unripe.
           </Text>

@@ -21,7 +21,7 @@ const toRecord = <T extends ScanRecord>(r: T): T => ({ ...r, confidence: Number(
 export type HistoryFilter = { fruit: FruitSlug | null; ripeness: Ripeness | null; search: string };
 
 /** Model labels that satisfy the filters. Search words must each start a word of the
- *  readable label, so "ripe" matches "Ripe Mango" but not "Unripe Mango". */
+ *  readable label, so "ripe" matches "Ripe Apple" but not "Unripe Apple". */
 export function matchingLabels(filter: HistoryFilter): string[] {
   const words = filter.search.toLowerCase().split(/\s+/).filter(Boolean);
   return FRUITS.flatMap((f) => (['ripe', 'unripe'] as const).map((r) => ({ f: f.slug, r, label: `${f.slug}_${r}` })))

@@ -114,7 +114,7 @@ export default function History() {
           <TextInput
             value={search}
             onChangeText={setSearch}
-            placeholder="Search, e.g. ripe mango"
+            placeholder="Search, e.g. ripe apple"
             placeholderTextColor="#9AA59C"
             style={styles.searchInput}
             autoCapitalize="none"
@@ -172,7 +172,7 @@ export default function History() {
               <Empty
                 icon="leaf-outline"
                 title="No scans yet"
-                text="Scan an apple, banana, mango or grapes and your results will be saved here."
+                text="Scan an apple, banana or grapes and your results will be saved here."
                 action={<Button label="Scan a Fruit" icon="camera" onPress={() => router.push('/scan')} />}
               />
             )

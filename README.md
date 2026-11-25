@@ -1,6 +1,6 @@
 # FruitCheck
 
-Android app (Expo / React Native / TypeScript) that classifies an apple, banana or mango photo as **ripe** or **unripe**, using the existing `fruitcheck_model.keras` served by a FastAPI backend. Scan history is stored in Supabase (Auth + Postgres with Row Level Security).
+Android app (Expo / React Native / TypeScript) that classifies an apple, banana or grapes photo as **ripe** or **unripe**, using the existing `fruitcheck_model.keras` served by a FastAPI backend. Scan history is stored in Supabase (Auth + Postgres with Row Level Security).
 
 ```
 FruitCheck/
@@ -21,7 +21,7 @@ FruitCheck/
 | Architecture | MobileNetV2 backbone + GAP + Dropout(0.3) + Dense(6, softmax) | read from the `.keras` config |
 | Input | 224×224×3, float, **raw 0–255** | config; the model has its own `Rescaling(1/127.5, -1)` layer, so the backend must not normalise again |
 | Output | 6 softmax probabilities | config |
-| Class order | `apple_ripe, apple_unripe, banana_ripe, banana_unripe, mango_ripe, mango_unripe` | original training file `classes.json` (saved at the same time as the model), cross-checked on the dataset |
+| Class order | `apple_ripe, apple_unripe, banana_ripe, banana_unripe, grapes_ripe, grapes_unripe` | original training file `classes.json` (saved at the same time as the model), cross-checked on the dataset |
 
 **The class order is not stored in the model file.** `backend/models/class_names.json` is a copy of the training artifact `classes.json` (its timestamp matches the model's save time). It was cross-checked independently: `backend/scripts/evaluate_labels.py` ran the model over all 2,400 dataset images and each folder mapped almost entirely to the same output index as `classes.json`. Alphabetical folder order (Keras' default) would be *wrong* here (33% agreement).
 
@@ -64,7 +64,9 @@ copy .env.example .env      # leave EXPO_PUBLIC_API_URL empty for local developm
 npx expo start
 ```
 1. Install **Expo Go** for **SDK 57** (the project uses Expo SDK 57).
-2. Phone and PC on the **same Wi-Fi**, then scan the QR code. If the Wi-Fi is a Windows "Public" network, use `npx expo start --tunnel`.
+2. Phone and PC on the **same Wi-Fi**, then scan the QR code.
+
+**Any network:** run `npm run start:cf` (or double-click `mobile/start_expo.bat`) instead. It starts the backend in its own window if it is not running, then serves Expo through a Cloudflare tunnel, so the phone can be on a different Wi-Fi or on mobile data. Both devices need internet. If a network blocks the tunnel, try `npx expo start --tunnel` with the backend running.
 
 **How the phone reaches the backend in development:** `mobile/metro.config.js` adds a `/fruitcheck-api/*` proxy to the Expo dev server, forwarding to `http://127.0.0.1:8000` on the PC. The app builds its API URL from the address it was loaded from (`http://<LAN IP>:8081/fruitcheck-api`, or `https://…exp.direct/fruitcheck-api` with `--tunnel`), never `localhost`. So if the app loads, the API is reachable too. To use a deployed backend instead, set `EXPO_PUBLIC_API_URL=https://…`.
 
@@ -101,7 +103,7 @@ curl -F "file=@apple.jpg;type=image/jpeg" http://localhost:8000/predict
 ```
 Response (values come from the model; this is one real run on a dataset image):
 ```json
-{"success":true,"predicted_class":"mango_unripe","fruit":"mango","ripeness":"unripe",
+{"success":true,"predicted_class":"apple_unripe","fruit":"apple","ripeness":"unripe",
  "confidence":0.990,"uncertain":false,"probabilities":{"apple_ripe":0.00006,"…":"…"},
  "message":"Prediction completed. …","timestamp":"2026-10-23T05:11:15Z","saved":false,"scan_id":null}
 ```
