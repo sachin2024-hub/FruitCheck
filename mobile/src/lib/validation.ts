@@ -29,7 +29,7 @@ export function passwordStrength(pw: string): Strength {
 export function authMessage(message: string): string {
   const m = message.toLowerCase();
   if (m.includes('invalid login credentials')) return 'Incorrect username or password.';
-  if (m.includes('email not confirmed')) return 'This account is not confirmed yet. Turn off "Confirm email" in Supabase Auth settings.';
+  if (m.includes('email not confirmed')) return 'This account is not activated yet. Please contact the app administrator.';
   if (m.includes('already registered') || m.includes('already been registered')) return 'That username is already taken. Choose another one.';
   if (m.includes('rate limit') || m.includes('too many')) return 'Too many attempts. Please wait a moment and try again.';
   if (m.includes('network') || m.includes('fetch')) return 'Could not reach the server. Check your internet connection.';

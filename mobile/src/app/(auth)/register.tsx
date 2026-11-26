@@ -1,4 +1,5 @@
 import { router } from 'expo-router';
+import { useHeaderHeight } from 'expo-router/react-navigation';
 import { useRef, useState } from 'react';
 import { KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
@@ -19,6 +20,8 @@ export default function Register() {
   const [busy, setBusy] = useState(false);
   const strength = passwordStrength(password);
   const scroll = useRef<ScrollView>(null);
+  // The screen sits below the navigation header, so keyboard avoidance must include its height.
+  const headerHeight = useHeaderHeight();
   // Wait for the keyboard to finish resizing the layout, then reveal the focused field and the button below it.
   const revealBottom = () => setTimeout(() => scroll.current?.scrollToEnd({ animated: true }), 250);
 
@@ -41,14 +44,9 @@ export default function Register() {
         options: { data: { full_name: name.trim() } }, // copied into public.profiles by a trigger
       });
       if (e) setError(authMessage(e.message));
-      else {
-        // Sign up opens a session; end it so the user signs in themselves on the login screen.
-        if (data.session) await supabase.auth.signOut();
-        router.replace({
-          pathname: '/login',
-          params: { notice: 'Account created. Please sign in.' },
-        });
-      }
+      // On success sign-up opens a session and the navigator moves to the app, like sign-in.
+      // No session means "Confirm email" is still enabled in Supabase.
+      else if (!data.session) setError(authMessage('email not confirmed'));
     } catch (e) {
       setError(authMessage((e as Error).message));
     } finally {
@@ -59,7 +57,7 @@ export default function Register() {
   const meterColor = [colors.danger, colors.danger, colors.accent, colors.primary, colors.primary][strength.score];
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding" keyboardVerticalOffset={headerHeight}>
       <ScrollView ref={scroll} contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <View style={{ gap: 6 }}>
           <Text style={type.display}>Join FruitCheck</Text>

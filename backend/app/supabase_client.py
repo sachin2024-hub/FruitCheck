@@ -37,8 +37,9 @@ class SupabaseClient:
             return None
         return r.json().get("id")
 
-    async def _lookup(self, client: httpx.AsyncClient, token: str) -> tuple[dict[str, int], str | None]:
-        if not self._fruit_ids:  # an empty result is not cached, so seeding the table later works
+    async def _lookup(self, client: httpx.AsyncClient, token: str, fruit: str) -> tuple[dict[str, int], str | None]:
+        # Reload when the fruit is unknown, so rows added to the table later work without a restart.
+        if fruit not in (self._fruit_ids or {}):
             r = await client.get(f"{self.base}/rest/v1/fruit_types?select=id,slug", headers=self._headers(token))
             r.raise_for_status()
             self._fruit_ids = {row["slug"]: row["id"] for row in r.json()}
@@ -62,7 +63,7 @@ class SupabaseClient:
         """Returns (scan id, None) on success or (None, short reason) on failure."""
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
-                fruit_ids, model_id = await self._lookup(client, token)
+                fruit_ids, model_id = await self._lookup(client, token, fruit)
                 if fruit not in fruit_ids:
                     logger.warning("Fruit '%s' is not in public.fruit_types (found %s); scan not saved", fruit, list(fruit_ids))
                     return None, f"fruit type '{fruit}' is missing from the fruit_types table"

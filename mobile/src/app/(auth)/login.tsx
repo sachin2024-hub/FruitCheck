@@ -1,4 +1,4 @@
-import { router, useLocalSearchParams } from 'expo-router';
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { KeyboardAvoidingView, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -10,7 +10,6 @@ import { colors, space, type } from '@/lib/theme';
 import { authMessage, isUsername, usernameToEmail } from '@/lib/validation';
 
 export default function Login() {
-  const params = useLocalSearchParams<{ notice?: string }>();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<{ username?: string; password?: string }>({});
@@ -50,7 +49,6 @@ export default function Login() {
             <Text style={type.muted}>Sign in to scan fruit and keep your classification history.</Text>
           </View>
 
-          {params.notice && <Banner tone="info" text={params.notice} />}
           {error && <Banner tone="error" text={error} />}
 
           <TextField
